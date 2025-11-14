@@ -1,5 +1,6 @@
 let randomNumber = null;
 let tries = 0;
+let history = [];
 
 const output = document.getElementById('result');
 const button = document.getElementById('guess-button');
@@ -20,6 +21,8 @@ button.addEventListener('click', () => {
         tries++;
     } else {
         output.innerHTML = `<h2 style="color: green">Congratulations! You've guessed the number ${randomNumber} in ${tries} tries.</h2>`;
+        addToHistory(tries, randomNumber);
+        renderHistory();
         localStorage.removeItem('randomNumber');
         tries = 0
     }
@@ -36,12 +39,18 @@ window.onload = () => {
         localStorage.setItem('tries', 0);
     }
 
+    if (localStorage.getItem('history')) {
+        history = JSON.parse(localStorage.getItem('history'));
+        renderHistory();
+    }
+
     randomNumber = parseInt(localStorage.getItem('randomNumber'), 10);
     tries = 0;
 }
 
 window.onbeforeunload = () => {
     localStorage.setItem('tries', tries);
+    localStorage.setItem('history', JSON.stringify(history));
 }
 
 function innerError(insert) {
@@ -50,4 +59,21 @@ function innerError(insert) {
 
 function makeRandomNumber(max) {
     return Math.floor(Math.random() * max);
+}
+
+function addToHistory(tries, randomNumber) {
+    history.push({
+        randomNumber: randomNumber,
+        tries: tries,
+        time: new Date().toTimeString(),
+    });
+}
+
+function renderHistory() {
+    const historyContainer = document.getElementById('history');
+    historyContainer.innerHTML = '<h2>Game History</h2>';
+
+    history.forEach((entry, index) => {
+        historyContainer.innerHTML += `<p>Game ${index + 1}: Guessed ${entry.randomNumber} in ${entry.tries} tries at ${entry.time}</p>`;
+    });
 }
